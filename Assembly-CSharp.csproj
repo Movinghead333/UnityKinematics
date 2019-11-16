@@ -63,7 +63,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\rotation.cs" />
+    <Compile Include="Assets\InverseKinematicController.cs" />
+    <Compile Include="Assets\scripts\HumanController.cs" />
+    <Compile Include="Assets\scripts\KeyboardInput.cs" />
+    <Compile Include="Assets\scripts\RobotController.cs" />
+    <Compile Include="Assets\scripts\rotation.cs" />
     <Reference Include="Unity.Timeline.Editor">
       <HintPath>D:/Unity_Games/WorkFigureTest/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
     </Reference>
