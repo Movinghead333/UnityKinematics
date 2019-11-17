@@ -63,9 +63,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\CameraController.cs" />
-    <Compile Include="Assets\InverseKinematicController.cs" />
+    <Compile Include="Assets\scripts\CameraController.cs" />
+    <Compile Include="Assets\scripts\HumanAngleConfig.cs" />
     <Compile Include="Assets\scripts\HumanController.cs" />
+    <Compile Include="Assets\scripts\InverseKinematicController.cs" />
     <Compile Include="Assets\scripts\KeyboardInput.cs" />
     <Compile Include="Assets\scripts\RobotController.cs" />
     <Compile Include="Assets\scripts\rotation.cs" />

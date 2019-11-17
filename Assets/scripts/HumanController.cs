@@ -122,4 +122,36 @@ public class HumanController : MonoBehaviour
     {
         return new Vector3(mat.m03, mat.m13, mat.m23);
     }
+
+    public void setAngles(HumanAngleConfig config)
+    {
+        this.baseJointAngle = config.baseJointAngle;
+        this.torsoJointAngle = config.torsoJointAngle;
+
+        this.rightArmSwing = config.rightArmSwing;
+        this.upperRightArmJointAngle = config.upperRightArmJointAngle;
+        this.lowerRightArmJointAngle = config.lowerRightArmJointAngle;
+
+        this.leftArmSwing = config.leftArmSwing;
+        this.upperLeftArmJointAngle = config.upperLeftArmJointAngle;
+        this.lowerLeftArmJointAngle = config.lowerLeftArmJointAngle;
+
+        CalculateMatrices();
+        ApplyMatrices();
+    }
+
+    public HumanAngleConfig getCurrentConfig()
+    {
+        return new HumanAngleConfig(
+            this.baseJointAngle,
+            this.torsoJointAngle,
+
+            this.rightArmSwing,
+            this.upperRightArmJointAngle,
+            this.lowerRightArmJointAngle,
+
+            this.leftArmSwing,
+            this.upperLeftArmJointAngle,
+            this.lowerLeftArmJointAngle);
+    }
 }

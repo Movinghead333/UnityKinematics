@@ -14,6 +14,13 @@ public class InverseKinematicController : MonoBehaviour
     float armSegment = 0.3f;
     float armLength =  0.6f;
 
+    HumanAngleConfig startConfig;
+    HumanAngleConfig ikConfig;
+
+    public bool interpolating = false;
+    public float progress = 0f;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -23,22 +30,66 @@ public class InverseKinematicController : MonoBehaviour
     // Update is called once per frame
     void LateUpdate()
     {
-        if (Input.GetKeyDown(KeyCode.T))
+        if (interpolating)
         {
-            calculateInverseKinematics();
+            if (progress < 1.0f)
+            {
+                progress += Time.deltaTime;
+                HumanAngleConfig interpolatedConfig = HumanAngleConfig.Lerp(
+                    startConfig, ikConfig, progress);
+                humanController.setAngles(interpolatedConfig);
+            }
+            else
+            {
+                progress = 0.0f;
+                interpolating = false;
+            }
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.T))
+            {
+                interpolating = calculateInverseKinematics();
+            }
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                interpolating = ResetRightArm();
+            }
         }
     }
 
-    void calculateInverseKinematics()
+    bool ResetRightArm()
     {
+        startConfig = humanController.getCurrentConfig();
+        ikConfig = new HumanAngleConfig(startConfig);
+        ikConfig.rightArmSwing = 0f;
+        ikConfig.upperRightArmJointAngle = 0f;
+        ikConfig.lowerRightArmJointAngle = 0f;
+        return true;
+    }
 
+    bool calculateInverseKinematics()
+    {
+        startConfig = humanController.getCurrentConfig();
 
-        Vector3 shoulderPos = HumanController.getTranslation(humanController.upperRightArmMatrix);
+        // get target position
         Vector3 targetPos = target.position;
 
+        // calculate lowerbodyJoint
+        Vector3 lowerBodyPosition = HumanController.getTranslation(humanController.lowerBodyMatrix);
+        Vector3 heading = targetPos - lowerBodyPosition;
+
+        float headingAngle = getAngle(heading.z, heading.x) - 90.0f;
+        humanController.baseJointAngle = headingAngle;
+        humanController.CalculateMatrices();
+
+        // calculate shoulder swing joint
+        Vector3 shoulderPos = HumanController.getTranslation(humanController.upperRightArmMatrix);
         Vector3 direction = targetPos - shoulderPos;
-        float baseAngle = getAngle(direction.z, direction.x);
-        humanController.rightArmSwing = baseAngle - 90.0f;
+
+        float rightArmSwing = getAngle(direction.z, direction.x) - humanController.baseJointAngle - 90.0f;
+        humanController.rightArmSwing = rightArmSwing;
         humanController.CalculateMatrices();
 
 
@@ -53,7 +104,9 @@ public class InverseKinematicController : MonoBehaviour
         if (distance > armLength)
         {
             Debug.Log("Distance: " + distance + " is too far from right shoulder!");
-            return;
+            humanController.upperRightArmJointAngle = 0f;
+            humanController.lowerRightArmJointAngle = 0f;
+            return false;
         }
 
         // recalculate direction after baseJoint might have changed
@@ -81,7 +134,10 @@ public class InverseKinematicController : MonoBehaviour
         Debug.Log("The baseAngle is: " + getAngle(direction.z, direction.x));
         Debug.Log("The upperArmAngle is: " + upperArmAngle);
         Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
-        humanController.ApplyMatrices();
+
+        ikConfig = new HumanAngleConfig(headingAngle, 0f, rightArmSwing, upperArmAngle, lowerArmAngle, 0f, 0f ,0f);
+
+        return true;
     }
 
     private float getAngle(float x, float y)
@@ -89,6 +145,5 @@ public class InverseKinematicController : MonoBehaviour
         float angle = Mathf.Atan2(y, x);
         float degrees = (angle * 180f) / Mathf.PI;
         return (360 + Mathf.Round(degrees)) % 360;
-
     }
 }

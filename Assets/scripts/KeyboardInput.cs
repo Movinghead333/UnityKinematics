@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class KeyboardInput : MonoBehaviour
 {
-    public float speed = 2.0f;
+    public float speed = 1.5f;
     public float turnSpeed = 90f;
 
     public float orientation = 0;
