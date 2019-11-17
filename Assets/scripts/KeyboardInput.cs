@@ -20,28 +20,50 @@ public class KeyboardInput : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKey(KeyCode.UpArrow))
+        {
+            controller.position.x += speed * Time.deltaTime;
+        }
+        else if (Input.GetKey(KeyCode.DownArrow))
+        {
+            controller.position.x -= speed * Time.deltaTime;
+        }
+
+        if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            controller.position.z += speed * Time.deltaTime;
+        }
+        else if (Input.GetKey(KeyCode.RightArrow))
+        {
+            controller.position.z -= speed * Time.deltaTime;
+        }
+
         if (Input.GetKey(KeyCode.W))
         {
             UpdateDirection();
-            controller.position.x += speed * Time.deltaTime;
-            //controller.position.x += direction.x * Time.deltaTime;
-            //controller.position.z -= direction.y * Time.deltaTime;
+            controller.position.x += direction.x * speed * Time.deltaTime;
+            controller.position.z -= direction.y * speed * Time.deltaTime;
         }
         else if (Input.GetKey(KeyCode.S))
         {
             UpdateDirection();
-            controller.position.x -= speed * Time.deltaTime;
-            //controller.position.x -= direction.x * Time.deltaTime;
-            //controller.position.z += direction.y * Time.deltaTime;
+            controller.position.x -= direction.x * speed * Time.deltaTime;
+            controller.position.z += direction.y * speed * Time.deltaTime;
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            controller.position.z += speed * Time.deltaTime;
+            UpdateDirection();
+            Vector2 perpDir = new Vector3(direction.y, -direction.x);
+            controller.position.x += perpDir.x * speed * Time.deltaTime;
+            controller.position.z -= perpDir.y * speed * Time.deltaTime;
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            controller.position.z -= speed * Time.deltaTime;
+            UpdateDirection();
+            Vector2 perpDir = new Vector3(-direction.y, direction.x);
+            controller.position.x += perpDir.x * speed * Time.deltaTime;
+            controller.position.z -= perpDir.y * speed * Time.deltaTime;
         }
 
         if (Input.GetKey(KeyCode.Q))

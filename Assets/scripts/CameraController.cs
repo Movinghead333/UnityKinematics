@@ -5,6 +5,8 @@ using UnityEngine;
 public class CameraController : MonoBehaviour
 {
     public HumanController humanController;
+
+    public Vector3 offset;
     // Start is called before the first frame update
     void Start()
     {
@@ -13,11 +15,13 @@ public class CameraController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
-        gameObject.transform.position = humanController.lowerBody.position;
-        gameObject.transform.rotation = humanController.lowerBody.rotation
-            * Quaternion.Euler(0.0f, 90.0f, 0.0f); ;
-        gameObject.transform.Translate(new Vector3(0.0f, 2.0f, -1.0f));
+        Matrix4x4 cam = humanController.lowerBodyMatrix *
+            Matrix4x4.Translate(new Vector3(-0.5f, 2.5f, 0f)) * 
+            Matrix4x4.Rotate(Quaternion.Euler(60f, 90f, 0f));
+
+        gameObject.transform.position = HumanController.getTranslation(cam);
+        gameObject.transform.rotation = cam.rotation;
     }
 }
