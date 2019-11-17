@@ -29,6 +29,13 @@ public class HumanController : MonoBehaviour
     Vector3 upperLeftArmOffset = new Vector3(0f, 0.5f, 0.2f);
     Vector3 lowerArmOffset = new Vector3(0f, -0.3f, 0f);
 
+    public Matrix4x4 lowerBodyMatrix;
+    public Matrix4x4 upperBodyMatrix;
+    public Matrix4x4 upperRightArmMatrix;
+    public Matrix4x4 lowerRightArmMatrix;
+    public Matrix4x4 upperLeftArmMatrix;
+    public Matrix4x4 lowerLeftArmMatrix;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -37,68 +44,81 @@ public class HumanController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        CalculateMatrices();
+        ApplyMatrices();
+    }
+
+    public void CalculateMatrices()
+    {
         // figure orientation joint
         Quaternion rot1 = Quaternion.Euler(0f, baseJointAngle, 0f);
-        Matrix4x4 lowerBodyMatrix =
+        lowerBodyMatrix =
             Matrix4x4.Translate(position) *
             Matrix4x4.Rotate(rot1);
-
-        lowerBody.position = getTranslation(lowerBodyMatrix);
-        lowerBody.rotation = lowerBodyMatrix.rotation;
 
 
         // torso joint
         Quaternion rot2 = Quaternion.Euler(0f, 0f, torsoJointAngle);
-        Matrix4x4 upperBodyMatrix =
+        upperBodyMatrix =
             lowerBodyMatrix *
             Matrix4x4.Translate(upperBodyOffset) *
             Matrix4x4.Rotate(rot2);
 
-        upperBody.position = getTranslation(upperBodyMatrix);
-        upperBody.rotation = upperBodyMatrix.rotation;
 
         // right shoulder bend joint
         Quaternion rot3 = Quaternion.Euler(0f, rightArmSwing, upperRightArmJointAngle);
-        Matrix4x4 upperRightArmMatrix =
+        upperRightArmMatrix =
             upperBodyMatrix *
             Matrix4x4.Translate(upperRightArmOffset) *
             Matrix4x4.Rotate(rot3);
 
-        upperRightArm.position = getTranslation(upperRightArmMatrix);
-        upperRightArm.rotation = upperRightArmMatrix.rotation;
 
         // right elbow bend joint
         Quaternion rot4 = Quaternion.Euler(0f, 0f, lowerRightArmJointAngle);
-        Matrix4x4 lowerRightArmMatrix =
+        lowerRightArmMatrix =
             upperRightArmMatrix *
             Matrix4x4.Translate(lowerArmOffset) *
             Matrix4x4.Rotate(rot4);
 
-        lowerRightArm.position = getTranslation(lowerRightArmMatrix);
-        lowerRightArm.rotation = lowerRightArmMatrix.rotation;
 
         // left shoulder bend joint
         Quaternion rot5 = Quaternion.Euler(0f, leftArmSwing, upperLeftArmJointAngle);
-        Matrix4x4 upperLeftArmMatrix =
+        upperLeftArmMatrix =
             upperBodyMatrix *
             Matrix4x4.Translate(upperLeftArmOffset) *
             Matrix4x4.Rotate(rot5);
 
-        upperLeftArm.position = getTranslation(upperLeftArmMatrix);
-        upperLeftArm.rotation = upperLeftArmMatrix.rotation;
 
         // left elbow bend joint
         Quaternion rot6 = Quaternion.Euler(0f, 0f, lowerLeftArmJointAngle);
-        Matrix4x4 lowerLeftArmMatrix =
+        lowerLeftArmMatrix =
             upperLeftArmMatrix *
             Matrix4x4.Translate(lowerArmOffset) *
             Matrix4x4.Rotate(rot6);
+    }
+
+    public void ApplyMatrices()
+    {
+        lowerBody.position = getTranslation(lowerBodyMatrix);
+        lowerBody.rotation = lowerBodyMatrix.rotation;
+
+        upperBody.position = getTranslation(upperBodyMatrix);
+        upperBody.rotation = upperBodyMatrix.rotation;
+
+        upperRightArm.position = getTranslation(upperRightArmMatrix);
+        upperRightArm.rotation = upperRightArmMatrix.rotation;
+
+        lowerRightArm.position = getTranslation(lowerRightArmMatrix);
+        lowerRightArm.rotation = lowerRightArmMatrix.rotation;
+
+        upperLeftArm.position = getTranslation(upperLeftArmMatrix);
+        upperLeftArm.rotation = upperLeftArmMatrix.rotation;
 
         lowerLeftArm.position = getTranslation(lowerLeftArmMatrix);
         lowerLeftArm.rotation = lowerLeftArmMatrix.rotation;
     }
 
-    Vector3 getTranslation(Matrix4x4 mat)
+    public static Vector3 getTranslation(Matrix4x4 mat)
     {
         return new Vector3(mat.m03, mat.m13, mat.m23);
     }
