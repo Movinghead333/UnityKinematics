@@ -36,65 +36,74 @@ public class HumanController : MonoBehaviour
     public Matrix4x4 upperLeftArmMatrix;
     public Matrix4x4 lowerLeftArmMatrix;
 
+    HumanAngleConfig currentConfig;
+
     // Start is called before the first frame update
     void Start()
     {
+        currentConfig = new HumanAngleConfig(
+            Quaternion.Euler(0f, baseJointAngle, 0f),
+            Quaternion.Euler(0f, 0f, torsoJointAngle),
+            Quaternion.Euler(0f, rightArmSwing, upperRightArmJointAngle),
+            Quaternion.Euler(0f, 0f, lowerRightArmJointAngle),
+            Quaternion.Euler(0f, leftArmSwing, upperLeftArmJointAngle),
+            Quaternion.Euler(0f, 0f, lowerLeftArmJointAngle));
+        CalculateMatrices();
     }
 
     // Update is called once per frame
     void Update()
     {
-        CalculateMatrices();
         ApplyMatrices();
     }
 
     public void CalculateMatrices()
     {
         // figure orientation joint
-        Quaternion rot1 = Quaternion.Euler(0f, baseJointAngle, 0f);
+        //Quaternion rot1 = Quaternion.Euler(0f, baseJointAngle, 0f);
         lowerBodyMatrix =
             Matrix4x4.Translate(position) *
-            Matrix4x4.Rotate(rot1);
+            Matrix4x4.Rotate(currentConfig.baseJointQuat);
 
 
         // torso joint
-        Quaternion rot2 = Quaternion.Euler(0f, 0f, torsoJointAngle);
+        //Quaternion rot2 = Quaternion.Euler(0f, 0f, torsoJointAngle);
         upperBodyMatrix =
             lowerBodyMatrix *
             Matrix4x4.Translate(upperBodyOffset) *
-            Matrix4x4.Rotate(rot2);
+            Matrix4x4.Rotate(currentConfig.torsoJointQuat);
 
 
         // right shoulder bend joint
-        Quaternion rot3 = Quaternion.Euler(0f, rightArmSwing, upperRightArmJointAngle);
+        //Quaternion rot3 = Quaternion.Euler(0f, rightArmSwing, upperRightArmJointAngle);
         upperRightArmMatrix =
             upperBodyMatrix *
             Matrix4x4.Translate(upperRightArmOffset) *
-            Matrix4x4.Rotate(rot3);
+            Matrix4x4.Rotate(currentConfig.upperRightArmJointQuat);
 
 
         // right elbow bend joint
-        Quaternion rot4 = Quaternion.Euler(0f, 0f, lowerRightArmJointAngle);
+        //Quaternion rot4 = Quaternion.Euler(0f, 0f, lowerRightArmJointAngle);
         lowerRightArmMatrix =
             upperRightArmMatrix *
             Matrix4x4.Translate(lowerArmOffset) *
-            Matrix4x4.Rotate(rot4);
+            Matrix4x4.Rotate(currentConfig.lowerRightArmJointQuat);
 
 
         // left shoulder bend joint
-        Quaternion rot5 = Quaternion.Euler(0f, leftArmSwing, upperLeftArmJointAngle);
+        //Quaternion rot5 = Quaternion.Euler(0f, leftArmSwing, upperLeftArmJointAngle);
         upperLeftArmMatrix =
             upperBodyMatrix *
             Matrix4x4.Translate(upperLeftArmOffset) *
-            Matrix4x4.Rotate(rot5);
+            Matrix4x4.Rotate(currentConfig.upperLeftArmJointQuat);
 
 
         // left elbow bend joint
-        Quaternion rot6 = Quaternion.Euler(0f, 0f, lowerLeftArmJointAngle);
+        //Quaternion rot6 = Quaternion.Euler(0f, 0f, lowerLeftArmJointAngle);
         lowerLeftArmMatrix =
             upperLeftArmMatrix *
             Matrix4x4.Translate(lowerArmOffset) *
-            Matrix4x4.Rotate(rot6);
+            Matrix4x4.Rotate(currentConfig.lowerLeftArmJointQuat);
     }
 
     public void ApplyMatrices()
@@ -123,35 +132,19 @@ public class HumanController : MonoBehaviour
         return new Vector3(mat.m03, mat.m13, mat.m23);
     }
 
-    public void setAngles(HumanAngleConfig config)
+    public void setConfig(HumanAngleConfig newConfig)
     {
-        this.baseJointAngle = config.baseJointAngle;
-        this.torsoJointAngle = config.torsoJointAngle;
-
-        this.rightArmSwing = config.rightArmSwing;
-        this.upperRightArmJointAngle = config.upperRightArmJointAngle;
-        this.lowerRightArmJointAngle = config.lowerRightArmJointAngle;
-
-        this.leftArmSwing = config.leftArmSwing;
-        this.upperLeftArmJointAngle = config.upperLeftArmJointAngle;
-        this.lowerLeftArmJointAngle = config.lowerLeftArmJointAngle;
-
-        CalculateMatrices();
-        ApplyMatrices();
+        currentConfig = newConfig;
     }
 
     public HumanAngleConfig getCurrentConfig()
     {
         return new HumanAngleConfig(
-            this.baseJointAngle,
-            this.torsoJointAngle,
-
-            this.rightArmSwing,
-            this.upperRightArmJointAngle,
-            this.lowerRightArmJointAngle,
-
-            this.leftArmSwing,
-            this.upperLeftArmJointAngle,
-            this.lowerLeftArmJointAngle);
+            this.lowerBodyMatrix.rotation,
+            this.upperBodyMatrix.rotation,
+            this.upperRightArmMatrix.rotation,
+            this.lowerRightArmMatrix.rotation,
+            this.upperLeftArmMatrix.rotation,
+            this.lowerLeftArmMatrix.rotation);
     }
 }

@@ -4,66 +4,57 @@ using UnityEngine;
 
 public class HumanAngleConfig
 {
-    public float baseJointAngle = 0f;
-    public float torsoJointAngle = 0f;
+    public Quaternion baseJointQuat;
+    public Quaternion torsoJointQuat;
 
-    public float rightArmSwing = 0f;
-    public float upperRightArmJointAngle = 0f;
-    public float lowerRightArmJointAngle = 0f;
+    public Quaternion upperRightArmJointQuat;
+    public Quaternion lowerRightArmJointQuat;
 
-    public float leftArmSwing = 0f;
-    public float upperLeftArmJointAngle = 0f;
-    public float lowerLeftArmJointAngle = 0f;
+    public Quaternion upperLeftArmJointQuat;
+    public Quaternion lowerLeftArmJointQuat;
 
     public HumanAngleConfig(
-        float baseJointAngle = 0f,
-        float torsoJointAngle = 0f,
+        Quaternion baseJointQuat,
+        Quaternion torsoJointQuat,
 
-        float rightArmSwing = 0f,
-        float upperRightArmJointAngle = 0f,
-        float lowerRightArmJointAngle = 0f,
+        Quaternion upperRightArmJointQuat,
+        Quaternion lowerRightArmJointQuat,
 
-        float leftArmSwing = 0f,
-        float upperLeftArmJointAngle = 0f,
-        float lowerLeftArmJointAngle = 0f)
+        Quaternion upperLeftArmJointQuat,
+        Quaternion lowerLeftArmJointQuat)
     {
-        this.baseJointAngle = baseJointAngle;
-        this.torsoJointAngle = torsoJointAngle;
+        this.baseJointQuat          = baseJointQuat;
+        this.torsoJointQuat         = torsoJointQuat;
 
-        this.rightArmSwing = rightArmSwing;
-        this.upperRightArmJointAngle = upperRightArmJointAngle;
-        this.lowerRightArmJointAngle = lowerRightArmJointAngle;
+        this.upperRightArmJointQuat = upperRightArmJointQuat;
+        this.lowerRightArmJointQuat = lowerRightArmJointQuat;
 
-        this.leftArmSwing = leftArmSwing;
-        this.upperLeftArmJointAngle = upperLeftArmJointAngle;
-        this.lowerLeftArmJointAngle = lowerLeftArmJointAngle;
+        this.upperLeftArmJointQuat  = upperLeftArmJointQuat;
+        this.lowerLeftArmJointQuat  = lowerLeftArmJointQuat;
     }
 
     public HumanAngleConfig(HumanAngleConfig newConfig)
     {
-        this.baseJointAngle = newConfig.baseJointAngle;
-        this.torsoJointAngle = newConfig.torsoJointAngle;
+        this.baseJointQuat          = newConfig.baseJointQuat;
+        this.torsoJointQuat         = newConfig.torsoJointQuat;
 
-        this.rightArmSwing = newConfig.rightArmSwing;
-        this.upperRightArmJointAngle = newConfig.upperRightArmJointAngle;
-        this.lowerRightArmJointAngle = newConfig.lowerRightArmJointAngle;
+        this.upperRightArmJointQuat = newConfig.upperRightArmJointQuat;
+        this.lowerRightArmJointQuat = newConfig.lowerRightArmJointQuat;
 
-        this.leftArmSwing = newConfig.leftArmSwing;
-        this.upperLeftArmJointAngle = newConfig.upperLeftArmJointAngle;
-        this.lowerLeftArmJointAngle = newConfig.lowerLeftArmJointAngle;
+        this.upperLeftArmJointQuat  = newConfig.upperLeftArmJointQuat;
+        this.lowerLeftArmJointQuat  = newConfig.lowerLeftArmJointQuat;
     }
 
     public static HumanAngleConfig Lerp(HumanAngleConfig start, HumanAngleConfig end, float gradient)
     {
+        //Debug.Log("Start angle: " + start.baseJointQuat + " Endconfig angle: " + end.baseJointQuat);
         return new HumanAngleConfig(
-            Mathf.Lerp(start.baseJointAngle, end.baseJointAngle, gradient),
-            Mathf.Lerp(start.torsoJointAngle, end.torsoJointAngle, gradient),
-            Mathf.Lerp(start.rightArmSwing, end.rightArmSwing, gradient),
-            Mathf.Lerp(start.upperRightArmJointAngle, end.upperRightArmJointAngle, gradient),
-            Mathf.Lerp(start.lowerRightArmJointAngle, end.lowerRightArmJointAngle, gradient),
-            Mathf.Lerp(start.leftArmSwing, end.leftArmSwing, gradient),
-            Mathf.Lerp(start.upperLeftArmJointAngle, end.upperLeftArmJointAngle, gradient),
-            Mathf.Lerp(start.lowerLeftArmJointAngle, end.lowerLeftArmJointAngle, gradient)
+            Quaternion.Slerp(start.baseJointQuat,          end.baseJointQuat, gradient),
+            Quaternion.Slerp(start.torsoJointQuat,         end.torsoJointQuat, gradient),
+            Quaternion.Slerp(start.upperRightArmJointQuat, end.upperRightArmJointQuat, gradient),
+            Quaternion.Slerp(start.lowerRightArmJointQuat, end.lowerRightArmJointQuat, gradient),
+            Quaternion.Slerp(start.upperLeftArmJointQuat,  end.upperLeftArmJointQuat, gradient),
+            Quaternion.Slerp(start.lowerLeftArmJointQuat,  end.lowerLeftArmJointQuat, gradient)
             );
     }
 }

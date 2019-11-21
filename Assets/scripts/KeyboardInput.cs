@@ -88,6 +88,9 @@ public class KeyboardInput : MonoBehaviour
             }
             controller.baseJointAngle = orientation;
         }
+
+        controller.CalculateMatrices();
+        controller.ApplyMatrices();
     }
 
     void UpdateDirection()

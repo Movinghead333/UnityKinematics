@@ -37,7 +37,7 @@ public class InverseKinematicController : MonoBehaviour
                 progress += Time.deltaTime;
                 HumanAngleConfig interpolatedConfig = HumanAngleConfig.Lerp(
                     startConfig, ikConfig, progress);
-                humanController.setAngles(interpolatedConfig);
+                humanController.setConfig(interpolatedConfig);
             }
             else
             {
@@ -63,9 +63,8 @@ public class InverseKinematicController : MonoBehaviour
     {
         startConfig = humanController.getCurrentConfig();
         ikConfig = new HumanAngleConfig(startConfig);
-        ikConfig.rightArmSwing = 0f;
-        ikConfig.upperRightArmJointAngle = 0f;
-        ikConfig.lowerRightArmJointAngle = 0f;
+        ikConfig.upperRightArmJointQuat = Quaternion.Euler(0f, 0f, 0f);
+        ikConfig.lowerRightArmJointQuat = Quaternion.Euler(0f, 0f, 0f);
         return true;
     }
 
@@ -135,7 +134,20 @@ public class InverseKinematicController : MonoBehaviour
         Debug.Log("The upperArmAngle is: " + upperArmAngle);
         Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
 
-        ikConfig = new HumanAngleConfig(headingAngle, 0f, rightArmSwing, upperArmAngle, lowerArmAngle, 0f, 0f ,0f);
+        ikConfig = new HumanAngleConfig(
+            humanController.lowerBodyMatrix.rotation,
+            humanController.upperBodyMatrix.rotation,
+            humanController.upperRightArmMatrix.rotation,
+            humanController.lowerRightArmMatrix.rotation,
+            humanController.upperLeftArmMatrix.rotation,
+            humanController.lowerLeftArmMatrix.rotation);
+
+        //public Matrix4x4 lowerBodyMatrix;
+        //public Matrix4x4 upperBodyMatrix;
+        //public Matrix4x4 upperRightArmMatrix;
+        //public Matrix4x4 lowerRightArmMatrix;
+        //public Matrix4x4 upperLeftArmMatrix;
+        //public Matrix4x4 lowerLeftArmMatrix;
 
         return true;
     }
