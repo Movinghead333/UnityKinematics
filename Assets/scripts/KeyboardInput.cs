@@ -14,88 +14,91 @@ public class KeyboardInput : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (InverseKinematicController.interpolating)
+        {
+            return;
+        }
         if (Input.GetKey(KeyCode.UpArrow))
         {
             controller.position.x += speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
         else if (Input.GetKey(KeyCode.DownArrow))
         {
             controller.position.x -= speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
 
         if (Input.GetKey(KeyCode.LeftArrow))
         {
             controller.position.z += speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
         else if (Input.GetKey(KeyCode.RightArrow))
         {
             controller.position.z -= speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
 
         if (Input.GetKey(KeyCode.W))
         {
-            UpdateDirection();
+            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
             controller.position.x += direction.x * speed * Time.deltaTime;
-            controller.position.z -= direction.y * speed * Time.deltaTime;
+            controller.position.z += direction.z * speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
         else if (Input.GetKey(KeyCode.S))
         {
-            UpdateDirection();
+            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
             controller.position.x -= direction.x * speed * Time.deltaTime;
-            controller.position.z += direction.y * speed * Time.deltaTime;
+            controller.position.z -= direction.z * speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
 
         if (Input.GetKey(KeyCode.A))
         {
-            UpdateDirection();
-            Vector2 perpDir = new Vector3(direction.y, -direction.x);
-            controller.position.x += perpDir.x * speed * Time.deltaTime;
-            controller.position.z -= perpDir.y * speed * Time.deltaTime;
+            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
+            controller.position.x -= direction.z * speed * Time.deltaTime;
+            controller.position.z += direction.x * speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            UpdateDirection();
-            Vector2 perpDir = new Vector3(-direction.y, direction.x);
-            controller.position.x += perpDir.x * speed * Time.deltaTime;
-            controller.position.z -= perpDir.y * speed * Time.deltaTime;
+            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
+            controller.position.x += direction.z * speed * Time.deltaTime;
+            controller.position.z -= direction.x * speed * Time.deltaTime;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
 
         if (Input.GetKey(KeyCode.Q))
         {
-            orientation = controller.baseJointAngle;
-            //controller.baseJointAngle -= turnSpeed * Time.deltaTime;
-            orientation -= turnSpeed * Time.deltaTime;
-            if (orientation < 0.0f)
-            {
-                orientation = 360.0f;
-            }
-            controller.baseJointAngle = orientation;
+            Quaternion rot = Quaternion.Euler(0f, -turnSpeed * Time.deltaTime, 0f);
+            controller.currentConfig.baseJointQuat *= rot;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
         else if (Input.GetKey(KeyCode.E))
         {
-            orientation = controller.baseJointAngle;
-            //controller.baseJointAngle += turnSpeed * Time.deltaTime;
-            orientation += turnSpeed * Time.deltaTime;
-            if (orientation >= 360.0f)
-            {
-                orientation = 0.0f;
-            }
-            controller.baseJointAngle = orientation;
+            Quaternion rot = Quaternion.Euler(0f, turnSpeed * Time.deltaTime, 0f);
+            controller.currentConfig.baseJointQuat *= rot;
+            controller.CalculateMatrices();
+            controller.ApplyMatrices();
         }
 
-        controller.CalculateMatrices();
-        controller.ApplyMatrices();
-    }
-
-    void UpdateDirection()
-    {
-        direction.x = Mathf.Cos(controller.baseJointAngle / 180.0f * Mathf.PI);
-        direction.y = Mathf.Sin(controller.baseJointAngle / 180.0f * Mathf.PI);
+        
     }
 }

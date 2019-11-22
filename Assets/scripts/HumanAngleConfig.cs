@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HumanAngleConfig
+public struct HumanAngleConfig
 {
     public Quaternion baseJointQuat;
     public Quaternion torsoJointQuat;

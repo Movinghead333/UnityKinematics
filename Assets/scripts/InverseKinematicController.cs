@@ -17,14 +17,15 @@ public class InverseKinematicController : MonoBehaviour
     HumanAngleConfig startConfig;
     HumanAngleConfig ikConfig;
 
-    public bool interpolating = false;
+    public float interpolationDuration = 1.0f;
+    public static bool interpolating = false;
     public float progress = 0f;
+    private float durationMultiplier;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        
     }
 
     // Update is called once per frame
@@ -34,13 +35,15 @@ public class InverseKinematicController : MonoBehaviour
         {
             if (progress < 1.0f)
             {
-                progress += Time.deltaTime;
-                HumanAngleConfig interpolatedConfig = HumanAngleConfig.Lerp(
-                    startConfig, ikConfig, progress);
-                humanController.setConfig(interpolatedConfig);
+                progress += Time.deltaTime * (1 / interpolationDuration);
+                humanController.setConfig(HumanAngleConfig.Lerp(
+                    startConfig, ikConfig, progress));
+                humanController.CalculateMatrices();
+                humanController.ApplyMatrices();
             }
             else
             {
+                startConfig = new HumanAngleConfig(ikConfig);
                 progress = 0.0f;
                 interpolating = false;
             }
@@ -70,7 +73,7 @@ public class InverseKinematicController : MonoBehaviour
 
     bool calculateInverseKinematics()
     {
-        startConfig = humanController.getCurrentConfig();
+        startConfig = new HumanAngleConfig(humanController.getCurrentConfig());
 
         // get target position
         Vector3 targetPos = target.position;
@@ -80,14 +83,14 @@ public class InverseKinematicController : MonoBehaviour
         Vector3 heading = targetPos - lowerBodyPosition;
 
         float headingAngle = getAngle(heading.z, heading.x) - 90.0f;
-        humanController.baseJointAngle = headingAngle;
+        humanController.currentConfig.baseJointQuat = Quaternion.Euler(0f, headingAngle, 0f);
         humanController.CalculateMatrices();
 
         // calculate shoulder swing joint
         Vector3 shoulderPos = HumanController.getTranslation(humanController.upperRightArmMatrix);
         Vector3 direction = targetPos - shoulderPos;
 
-        float rightArmSwing = getAngle(direction.z, direction.x) - humanController.baseJointAngle - 90.0f;
+        float rightArmSwing = getAngle(direction.z, direction.x) - headingAngle - 90.0f;
         humanController.rightArmSwing = rightArmSwing;
         humanController.CalculateMatrices();
 
@@ -105,6 +108,7 @@ public class InverseKinematicController : MonoBehaviour
             Debug.Log("Distance: " + distance + " is too far from right shoulder!");
             humanController.upperRightArmJointAngle = 0f;
             humanController.lowerRightArmJointAngle = 0f;
+            humanController.currentConfig = new HumanAngleConfig(startConfig);
             return false;
         }
 
@@ -135,12 +139,14 @@ public class InverseKinematicController : MonoBehaviour
         Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
 
         ikConfig = new HumanAngleConfig(
-            humanController.lowerBodyMatrix.rotation,
-            humanController.upperBodyMatrix.rotation,
-            humanController.upperRightArmMatrix.rotation,
-            humanController.lowerRightArmMatrix.rotation,
-            humanController.upperLeftArmMatrix.rotation,
-            humanController.lowerLeftArmMatrix.rotation);
+            Quaternion.Euler(0f, headingAngle, 0f),
+            Quaternion.identity,
+            Quaternion.Euler(0f, rightArmSwing, upperArmAngle),
+            Quaternion.Euler(0f, 0f, lowerArmAngle),
+            Quaternion.identity,
+            Quaternion.identity);
+
+        humanController.currentConfig = new HumanAngleConfig(startConfig);
 
         //public Matrix4x4 lowerBodyMatrix;
         //public Matrix4x4 upperBodyMatrix;

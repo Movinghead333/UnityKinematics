@@ -36,7 +36,7 @@ public class HumanController : MonoBehaviour
     public Matrix4x4 upperLeftArmMatrix;
     public Matrix4x4 lowerLeftArmMatrix;
 
-    HumanAngleConfig currentConfig;
+    public HumanAngleConfig currentConfig;
 
     // Start is called before the first frame update
     void Start()
@@ -54,20 +54,17 @@ public class HumanController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        ApplyMatrices();
     }
 
     public void CalculateMatrices()
     {
         // figure orientation joint
-        //Quaternion rot1 = Quaternion.Euler(0f, baseJointAngle, 0f);
         lowerBodyMatrix =
             Matrix4x4.Translate(position) *
             Matrix4x4.Rotate(currentConfig.baseJointQuat);
 
 
         // torso joint
-        //Quaternion rot2 = Quaternion.Euler(0f, 0f, torsoJointAngle);
         upperBodyMatrix =
             lowerBodyMatrix *
             Matrix4x4.Translate(upperBodyOffset) *
@@ -75,7 +72,6 @@ public class HumanController : MonoBehaviour
 
 
         // right shoulder bend joint
-        //Quaternion rot3 = Quaternion.Euler(0f, rightArmSwing, upperRightArmJointAngle);
         upperRightArmMatrix =
             upperBodyMatrix *
             Matrix4x4.Translate(upperRightArmOffset) *
@@ -83,7 +79,6 @@ public class HumanController : MonoBehaviour
 
 
         // right elbow bend joint
-        //Quaternion rot4 = Quaternion.Euler(0f, 0f, lowerRightArmJointAngle);
         lowerRightArmMatrix =
             upperRightArmMatrix *
             Matrix4x4.Translate(lowerArmOffset) *
@@ -91,7 +86,6 @@ public class HumanController : MonoBehaviour
 
 
         // left shoulder bend joint
-        //Quaternion rot5 = Quaternion.Euler(0f, leftArmSwing, upperLeftArmJointAngle);
         upperLeftArmMatrix =
             upperBodyMatrix *
             Matrix4x4.Translate(upperLeftArmOffset) *
@@ -99,7 +93,6 @@ public class HumanController : MonoBehaviour
 
 
         // left elbow bend joint
-        //Quaternion rot6 = Quaternion.Euler(0f, 0f, lowerLeftArmJointAngle);
         lowerLeftArmMatrix =
             upperLeftArmMatrix *
             Matrix4x4.Translate(lowerArmOffset) *
@@ -134,17 +127,11 @@ public class HumanController : MonoBehaviour
 
     public void setConfig(HumanAngleConfig newConfig)
     {
-        currentConfig = newConfig;
+        currentConfig = new HumanAngleConfig(newConfig);
     }
 
     public HumanAngleConfig getCurrentConfig()
     {
-        return new HumanAngleConfig(
-            this.lowerBodyMatrix.rotation,
-            this.upperBodyMatrix.rotation,
-            this.upperRightArmMatrix.rotation,
-            this.lowerRightArmMatrix.rotation,
-            this.upperLeftArmMatrix.rotation,
-            this.lowerLeftArmMatrix.rotation);
+        return currentConfig;
     }
 }
