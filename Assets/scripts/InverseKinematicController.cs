@@ -7,6 +7,8 @@ public class InverseKinematicController : MonoBehaviour
     public HumanController humanController;
     public Transform target;
 
+    public float maxDistance = 0.8f;
+
     public float gamma = 0f;
     public float alpha = 0f;
 
@@ -86,6 +88,45 @@ public class InverseKinematicController : MonoBehaviour
         humanController.currentConfig.baseJointQuat = Quaternion.Euler(0f, headingAngle, 0f);
         humanController.CalculateMatrices();
 
+
+
+
+        float shoulderTargetDistance = (targetPos - HumanController.getTranslation(
+            humanController.upperRightArmMatrix)).magnitude;
+
+        float torsoBendAngle = 0f;
+        if (shoulderTargetDistance > armLength && shoulderTargetDistance < maxDistance)
+        {
+            Debug.Log("Calculating torsobend");
+
+            // calculate torsobend
+            Vector3 hipPosition = HumanController.getTranslation(humanController.upperBodyMatrix);
+            Vector3 hipTargetDistVec = targetPos - hipPosition;
+            float hipTargetDist = hipTargetDistVec.magnitude; // c-side
+            float torsoHeight = HumanController.torsoHeight; // b-side
+            float projectedArmDistance = Mathf.Sqrt( // a-side
+                (2 * HumanController.armSegmentLength) * (2 * HumanController.armSegmentLength) -
+                HumanController.armOffset * HumanController.armOffset);
+            Debug.Log("Projected distance: " + projectedArmDistance);
+
+            // get alpha via cosin formula: gamma = arccos( (a^2+b^2-c^2) / 2ab)
+            float alphaAngle = Mathf.Acos(
+                (Mathf.Pow(torsoHeight, 2f) + Mathf.Pow(hipTargetDist, 2f) - Mathf.Pow(projectedArmDistance, 2f)) /
+                (2f * torsoHeight * hipTargetDist)) * Mathf.Rad2Deg;
+            Debug.Log("AlphaAngle: " + alphaAngle);
+
+            Vector3 normalizedHipTargetDistVec = Vector3.Normalize(hipTargetDistVec);
+            float betaAngle = Mathf.Acos(Vector3.Dot(Vector3.up, normalizedHipTargetDistVec)) * Mathf.Rad2Deg;
+
+            torsoBendAngle = betaAngle - alphaAngle;
+            Debug.Log("torsoangle: " + torsoBendAngle);
+            humanController.currentConfig.torsoJointQuat = Quaternion.Euler(0f, 0f, -torsoBendAngle);
+            humanController.CalculateMatrices();
+        }
+
+        
+
+
         // calculate shoulder swing joint
         Vector3 shoulderPos = HumanController.getTranslation(humanController.upperRightArmMatrix);
         Vector3 direction = targetPos - shoulderPos;
@@ -103,7 +144,7 @@ public class InverseKinematicController : MonoBehaviour
         float distance = Vector3.Distance(shoulderPos, targetPos);
         
         // if the distance is above the threshold distance quit the function
-        if (distance > armLength)
+        if (distance > maxDistance)
         {
             Debug.Log("Distance: " + distance + " is too far from right shoulder!");
             humanController.upperRightArmJointAngle = 0f;
@@ -123,24 +164,24 @@ public class InverseKinematicController : MonoBehaviour
         alpha = (180.0f - gamma) / 2.0f;
 
         Vector2 directionGrappingPlane = new Vector2(directionInXZPlane.magnitude, direction.y);
-        Debug.Log("XZ-Y-Plane: " + directionGrappingPlane);
+        //Debug.Log("XZ-Y-Plane: " + directionGrappingPlane);
         float upperArmAngle = getAngle(directionGrappingPlane.x, directionGrappingPlane.y);
-        Debug.Log("The atan2 upperArmAngle is: " + upperArmAngle);
+        //Debug.Log("The atan2 upperArmAngle is: " + upperArmAngle);
 
-        upperArmAngle = upperArmAngle + 90.0f - alpha;
+        upperArmAngle = upperArmAngle + 90.0f - alpha + torsoBendAngle;
         humanController.upperRightArmJointAngle = upperArmAngle;
 
         float lowerArmAngle = 180.0f - gamma;
         humanController.lowerRightArmJointAngle = lowerArmAngle;
 
-        Debug.Log("Distance to object is: " + distance);
-        Debug.Log("The baseAngle is: " + getAngle(direction.z, direction.x));
-        Debug.Log("The upperArmAngle is: " + upperArmAngle);
-        Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
+        //Debug.Log("Distance to object is: " + distance);
+        //Debug.Log("The baseAngle is: " + getAngle(direction.z, direction.x));
+        //Debug.Log("The upperArmAngle is: " + upperArmAngle);
+        //Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
 
         ikConfig = new HumanAngleConfig(
             Quaternion.Euler(0f, headingAngle, 0f),
-            Quaternion.identity,
+            Quaternion.Euler(0f, 0f, -torsoBendAngle),
             Quaternion.Euler(0f, rightArmSwing, upperArmAngle),
             Quaternion.Euler(0f, 0f, lowerArmAngle),
             Quaternion.identity,

@@ -24,10 +24,14 @@ public class HumanController : MonoBehaviour
 
     public Vector3 position = new Vector3(0f, 0f, 0f);
 
+    public static float torsoHeight = 0.5f;
+    public static float armOffset = -0.2f;
+    public static float armSegmentLength = 0.3f;
+
     Vector3 upperBodyOffset = new Vector3(0f, 1f, 0f);
-    Vector3 upperRightArmOffset = new Vector3(0f, 0.5f, -0.2f);
-    Vector3 upperLeftArmOffset = new Vector3(0f, 0.5f, 0.2f);
-    Vector3 lowerArmOffset = new Vector3(0f, -0.3f, 0f);
+    Vector3 upperRightArmOffset = new Vector3(0f, torsoHeight, armOffset);
+    Vector3 upperLeftArmOffset = new Vector3(0f, torsoHeight, -armOffset);
+    Vector3 lowerArmOffset = new Vector3(0f, -armSegmentLength, 0f);
 
     public Matrix4x4 lowerBodyMatrix;
     public Matrix4x4 upperBodyMatrix;
