@@ -182,7 +182,7 @@ public class InverseKinematicController : MonoBehaviour
         float upperArmAngle = getAngle(directionGrappingPlane.x, directionGrappingPlane.y);
         //Debug.Log("The atan2 upperArmAngle is: " + upperArmAngle);
 
-        upperArmAngle = upperArmAngle + 90.0f - alpha + torsoBendAngle;
+        upperArmAngle = upperArmAngle + 90.0f - alpha;
 
         float lowerArmAngle = 180.0f - gamma;
 
@@ -191,7 +191,7 @@ public class InverseKinematicController : MonoBehaviour
         //Debug.Log("The upperArmAngle is: " + upperArmAngle);
         //Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
 
-        IKConfig.upperRightArmJointQuat = Quaternion.Euler(0f, rightArmSwing, upperArmAngle);
+        IKConfig.upperRightArmJointQuat = Quaternion.Euler(0f, 0f, torsoBendAngle) * Quaternion.Euler(0f, rightArmSwing, upperArmAngle);
         IKConfig.lowerRightArmJointQuat = Quaternion.Euler(0f, 0f, lowerArmAngle);
 
         ikConfig = IKConfig;
