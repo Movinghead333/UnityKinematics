@@ -40,6 +40,11 @@ public class HumanController : MonoBehaviour
     public Matrix4x4 upperLeftArmMatrix;
     public Matrix4x4 lowerLeftArmMatrix;
 
+    public Matrix4x4 upperBodyOffsetMatrix;
+    public Matrix4x4 upperRightArmOffsetMatrix;
+    public Matrix4x4 upperLeftArmOffsetMatrix;
+    public Matrix4x4 lowerArmOffsetMatrix;
+
     public HumanAngleConfig currentConfig;
 
     // Start is called before the first frame update
@@ -52,6 +57,12 @@ public class HumanController : MonoBehaviour
             Quaternion.Euler(0f, 0f, lowerRightArmJointAngle),
             Quaternion.Euler(0f, leftArmSwing, upperLeftArmJointAngle),
             Quaternion.Euler(0f, 0f, lowerLeftArmJointAngle));
+
+        upperBodyOffsetMatrix = Matrix4x4.Translate(upperBodyOffset);
+        upperRightArmOffsetMatrix = Matrix4x4.Translate(upperRightArmOffset);
+        upperLeftArmOffsetMatrix = Matrix4x4.Translate(upperLeftArmOffset);
+        lowerArmOffsetMatrix = Matrix4x4.Translate(lowerArmOffset);
+
         CalculateMatrices();
     }
 
@@ -65,41 +76,41 @@ public class HumanController : MonoBehaviour
         // figure orientation joint
         lowerBodyMatrix =
             Matrix4x4.Translate(position) *
-            Matrix4x4.Rotate(currentConfig.baseJointQuat);
+            Matrix4x4.Rotate(currentConfig.lowerBodyQuat);
 
 
         // torso joint
         upperBodyMatrix =
             lowerBodyMatrix *
-            Matrix4x4.Translate(upperBodyOffset) *
-            Matrix4x4.Rotate(currentConfig.torsoJointQuat);
+            upperBodyOffsetMatrix *
+            Matrix4x4.Rotate(currentConfig.upperBodyQuat);
 
 
         // right shoulder bend joint
         upperRightArmMatrix =
             upperBodyMatrix *
-            Matrix4x4.Translate(upperRightArmOffset) *
+            upperRightArmOffsetMatrix *
             Matrix4x4.Rotate(currentConfig.upperRightArmJointQuat);
 
 
         // right elbow bend joint
         lowerRightArmMatrix =
             upperRightArmMatrix *
-            Matrix4x4.Translate(lowerArmOffset) *
+            lowerArmOffsetMatrix *
             Matrix4x4.Rotate(currentConfig.lowerRightArmJointQuat);
 
 
         // left shoulder bend joint
         upperLeftArmMatrix =
             upperBodyMatrix *
-            Matrix4x4.Translate(upperLeftArmOffset) *
+            upperLeftArmOffsetMatrix *
             Matrix4x4.Rotate(currentConfig.upperLeftArmJointQuat);
 
 
         // left elbow bend joint
         lowerLeftArmMatrix =
             upperLeftArmMatrix *
-            Matrix4x4.Translate(lowerArmOffset) *
+            lowerArmOffsetMatrix *
             Matrix4x4.Rotate(currentConfig.lowerLeftArmJointQuat);
     }
 

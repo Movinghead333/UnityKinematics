@@ -52,7 +52,7 @@ public class KeyboardInput : MonoBehaviour
 
         if (Input.GetKey(KeyCode.W))
         {
-            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
+            Vector3 direction = controller.currentConfig.lowerBodyQuat * new Vector3(1, 0, 0);
             controller.position.x += direction.x * speed * Time.deltaTime;
             controller.position.z += direction.z * speed * Time.deltaTime;
             controller.CalculateMatrices();
@@ -60,7 +60,7 @@ public class KeyboardInput : MonoBehaviour
         }
         else if (Input.GetKey(KeyCode.S))
         {
-            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
+            Vector3 direction = controller.currentConfig.lowerBodyQuat * new Vector3(1, 0, 0);
             controller.position.x -= direction.x * speed * Time.deltaTime;
             controller.position.z -= direction.z * speed * Time.deltaTime;
             controller.CalculateMatrices();
@@ -69,7 +69,7 @@ public class KeyboardInput : MonoBehaviour
 
         if (Input.GetKey(KeyCode.A))
         {
-            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
+            Vector3 direction = controller.currentConfig.lowerBodyQuat * new Vector3(1, 0, 0);
             controller.position.x -= direction.z * speed * Time.deltaTime;
             controller.position.z += direction.x * speed * Time.deltaTime;
             controller.CalculateMatrices();
@@ -77,7 +77,7 @@ public class KeyboardInput : MonoBehaviour
         }
         else if (Input.GetKey(KeyCode.D))
         {
-            Vector3 direction = controller.currentConfig.baseJointQuat * new Vector3(1, 0, 0);
+            Vector3 direction = controller.currentConfig.lowerBodyQuat * new Vector3(1, 0, 0);
             controller.position.x += direction.z * speed * Time.deltaTime;
             controller.position.z -= direction.x * speed * Time.deltaTime;
             controller.CalculateMatrices();
@@ -87,14 +87,14 @@ public class KeyboardInput : MonoBehaviour
         if (Input.GetKey(KeyCode.Q))
         {
             Quaternion rot = Quaternion.Euler(0f, -turnSpeed * Time.deltaTime, 0f);
-            controller.currentConfig.baseJointQuat *= rot;
+            controller.currentConfig.lowerBodyQuat *= rot;
             controller.CalculateMatrices();
             controller.ApplyMatrices();
         }
         else if (Input.GetKey(KeyCode.E))
         {
             Quaternion rot = Quaternion.Euler(0f, turnSpeed * Time.deltaTime, 0f);
-            controller.currentConfig.baseJointQuat *= rot;
+            controller.currentConfig.lowerBodyQuat *= rot;
             controller.CalculateMatrices();
             controller.ApplyMatrices();
         }

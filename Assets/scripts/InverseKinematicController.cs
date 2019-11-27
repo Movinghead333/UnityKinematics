@@ -68,31 +68,58 @@ public class InverseKinematicController : MonoBehaviour
     {
         startConfig = humanController.getCurrentConfig();
         ikConfig = new HumanAngleConfig(startConfig);
-        ikConfig.upperRightArmJointQuat = Quaternion.Euler(0f, 0f, 0f);
-        ikConfig.lowerRightArmJointQuat = Quaternion.Euler(0f, 0f, 0f);
+        ikConfig.upperRightArmJointQuat = Quaternion.identity;
+        ikConfig.lowerRightArmJointQuat = Quaternion.identity;
+        ikConfig.upperBodyQuat = Quaternion.identity;
         return true;
     }
 
     bool calculateInverseKinematics()
     {
-        startConfig = new HumanAngleConfig(humanController.getCurrentConfig());
+        Matrix4x4 lowerBodyMatrix;
+        Matrix4x4 upperBodyMatrix;
+        Matrix4x4 upperRightArmMatrix;
+        Matrix4x4 lowerRightArmMatrix;
+        Matrix4x4 upperLeftArmMatrix;
+        Matrix4x4 lowerLeftArmMatrix;
+
+        HumanAngleConfig IKConfig = new HumanAngleConfig(
+            Quaternion.identity, Quaternion.identity, Quaternion.identity,
+            Quaternion.identity, Quaternion.identity, Quaternion.identity);
 
         // get target position
         Vector3 targetPos = target.position;
 
         // calculate lowerbodyJoint
-        Vector3 lowerBodyPosition = HumanController.getTranslation(humanController.lowerBodyMatrix);
+        Vector3 lowerBodyPosition = humanController.position;
         Vector3 heading = targetPos - lowerBodyPosition;
 
         float headingAngle = getAngle(heading.z, heading.x) - 90.0f;
-        humanController.currentConfig.baseJointQuat = Quaternion.Euler(0f, headingAngle, 0f);
-        humanController.CalculateMatrices();
+        IKConfig.lowerBodyQuat = Quaternion.Euler(0f, headingAngle, 0f);
+
+        lowerBodyMatrix = Matrix4x4.Translate(lowerBodyPosition) * Matrix4x4.Rotate(IKConfig.lowerBodyQuat);
+        upperBodyMatrix = lowerBodyMatrix * humanController.upperBodyOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperBodyQuat);
+        upperRightArmMatrix = upperBodyMatrix * humanController.upperRightArmOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperRightArmJointQuat);
 
 
 
-
+        // get the distance between shoulder joint and target object after
+        // the figure has rotated towards its target object
         float shoulderTargetDistance = (targetPos - HumanController.getTranslation(
-            humanController.upperRightArmMatrix)).magnitude;
+            upperRightArmMatrix)).magnitude;
+
+        Debug.Log("shoulder target distance: " + shoulderTargetDistance);
+
+        // if the distance is above the threshold distance quit the function
+        if (shoulderTargetDistance > maxDistance)
+        {
+            Debug.Log("Distance: " + shoulderTargetDistance + " is too far from right shoulder!");
+            IKConfig.upperRightArmJointQuat = Quaternion.identity;
+            IKConfig.lowerRightArmJointQuat = Quaternion.identity;
+            IKConfig.upperBodyQuat = Quaternion.identity;
+            ikConfig = IKConfig;
+            return true;
+        }
 
         float torsoBendAngle = 0f;
         if (shoulderTargetDistance > armLength && shoulderTargetDistance < maxDistance)
@@ -100,14 +127,14 @@ public class InverseKinematicController : MonoBehaviour
             Debug.Log("Calculating torsobend");
 
             // calculate torsobend
-            Vector3 hipPosition = HumanController.getTranslation(humanController.upperBodyMatrix);
+            Vector3 hipPosition = HumanController.getTranslation(upperBodyMatrix);
             Vector3 hipTargetDistVec = targetPos - hipPosition;
             float hipTargetDist = hipTargetDistVec.magnitude; // c-side
             float torsoHeight = HumanController.torsoHeight; // b-side
             float projectedArmDistance = Mathf.Sqrt( // a-side
                 (2 * HumanController.armSegmentLength) * (2 * HumanController.armSegmentLength) -
-                HumanController.armOffset * HumanController.armOffset);
-            Debug.Log("Projected distance: " + projectedArmDistance);
+                HumanController.armOffset * HumanController.armOffset) - 0.05f;
+            //Debug.Log("Projected distance: " + projectedArmDistance);
 
             // get alpha via cosin formula: gamma = arccos( (a^2+b^2-c^2) / 2ab)
             float alphaAngle = Mathf.Acos(
@@ -120,42 +147,29 @@ public class InverseKinematicController : MonoBehaviour
 
             torsoBendAngle = betaAngle - alphaAngle;
             Debug.Log("torsoangle: " + torsoBendAngle);
-            humanController.currentConfig.torsoJointQuat = Quaternion.Euler(0f, 0f, -torsoBendAngle);
-            humanController.CalculateMatrices();
+            IKConfig.upperBodyQuat = Quaternion.Euler(0f, 0f, -torsoBendAngle);
+            upperBodyMatrix = lowerBodyMatrix * humanController.upperBodyOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperBodyQuat);
+            upperRightArmMatrix = upperBodyMatrix * humanController.upperRightArmOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperRightArmJointQuat);
         }
 
-        
-
-
         // calculate shoulder swing joint
-        Vector3 shoulderPos = HumanController.getTranslation(humanController.upperRightArmMatrix);
+        Vector3 shoulderPos = HumanController.getTranslation(upperRightArmMatrix);
         Vector3 direction = targetPos - shoulderPos;
 
         float rightArmSwing = getAngle(direction.z, direction.x) - headingAngle - 90.0f;
-        humanController.rightArmSwing = rightArmSwing;
-        humanController.CalculateMatrices();
+        ikConfig.upperRightArmJointQuat = IKConfig.upperRightArmJointQuat = Quaternion.Euler(0f, rightArmSwing, 0f);
+        upperRightArmMatrix = upperBodyMatrix * humanController.upperRightArmOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperRightArmJointQuat);
 
 
         // recalculated necessary values after changing first joint
-        shoulderPos = HumanController.getTranslation(humanController.upperRightArmMatrix);
+        shoulderPos = HumanController.getTranslation(upperRightArmMatrix);
         direction = targetPos - shoulderPos;
 
         // calculate distance between shoulder point and target object
         float distance = Vector3.Distance(shoulderPos, targetPos);
         
-        // if the distance is above the threshold distance quit the function
-        if (distance > maxDistance)
-        {
-            Debug.Log("Distance: " + distance + " is too far from right shoulder!");
-            humanController.upperRightArmJointAngle = 0f;
-            humanController.lowerRightArmJointAngle = 0f;
-            humanController.currentConfig = new HumanAngleConfig(startConfig);
-            return false;
-        }
-
         // recalculate direction after baseJoint might have changed
         Vector2 directionInXZPlane = new Vector2(direction.x, direction.z);
-
 
 
         // get gamma and alpha angle in isosceles triangle
@@ -169,32 +183,18 @@ public class InverseKinematicController : MonoBehaviour
         //Debug.Log("The atan2 upperArmAngle is: " + upperArmAngle);
 
         upperArmAngle = upperArmAngle + 90.0f - alpha + torsoBendAngle;
-        humanController.upperRightArmJointAngle = upperArmAngle;
 
         float lowerArmAngle = 180.0f - gamma;
-        humanController.lowerRightArmJointAngle = lowerArmAngle;
 
         //Debug.Log("Distance to object is: " + distance);
         //Debug.Log("The baseAngle is: " + getAngle(direction.z, direction.x));
         //Debug.Log("The upperArmAngle is: " + upperArmAngle);
         //Debug.Log("The lowerArmAngle is; " + lowerArmAngle);
 
-        ikConfig = new HumanAngleConfig(
-            Quaternion.Euler(0f, headingAngle, 0f),
-            Quaternion.Euler(0f, 0f, -torsoBendAngle),
-            Quaternion.Euler(0f, rightArmSwing, upperArmAngle),
-            Quaternion.Euler(0f, 0f, lowerArmAngle),
-            Quaternion.identity,
-            Quaternion.identity);
+        IKConfig.upperRightArmJointQuat = Quaternion.Euler(0f, rightArmSwing, upperArmAngle);
+        IKConfig.lowerRightArmJointQuat = Quaternion.Euler(0f, 0f, lowerArmAngle);
 
-        humanController.currentConfig = new HumanAngleConfig(startConfig);
-
-        //public Matrix4x4 lowerBodyMatrix;
-        //public Matrix4x4 upperBodyMatrix;
-        //public Matrix4x4 upperRightArmMatrix;
-        //public Matrix4x4 lowerRightArmMatrix;
-        //public Matrix4x4 upperLeftArmMatrix;
-        //public Matrix4x4 lowerLeftArmMatrix;
+        ikConfig = IKConfig;
 
         return true;
     }
