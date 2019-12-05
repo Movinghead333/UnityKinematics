@@ -1789,7 +1789,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   humanController: {fileID: 2080499963}
   target: {fileID: 1190535380}
-  maxDistance: 0.8
+  maxDistance: 1
   gamma: 0
   alpha: 0
   interpolationDuration: 1
