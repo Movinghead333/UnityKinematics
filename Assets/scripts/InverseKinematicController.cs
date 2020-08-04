@@ -7,7 +7,7 @@ public class InverseKinematicController : MonoBehaviour
     public HumanController humanController;
     public Transform target;
 
-    public float maxDistance = 0.8f;
+    public float maxTorsoBendAngle = 20.0f;
 
     public float gamma = 0f;
     public float alpha = 0f;
@@ -97,8 +97,10 @@ public class InverseKinematicController : MonoBehaviour
         float headingAngle = getAngle(heading.z, heading.x) - 90.0f;
         IKConfig.lowerBodyQuat = Quaternion.Euler(0f, headingAngle, 0f);
 
+        Quaternion maxTorsobBendQuat = Quaternion.Euler(0, 0, -20f);
+
         lowerBodyMatrix = Matrix4x4.Translate(lowerBodyPosition) * Matrix4x4.Rotate(IKConfig.lowerBodyQuat);
-        upperBodyMatrix = lowerBodyMatrix * humanController.upperBodyOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperBodyQuat);
+        upperBodyMatrix = lowerBodyMatrix * humanController.upperBodyOffsetMatrix * Matrix4x4.Rotate(maxTorsobBendQuat);
         upperRightArmMatrix = upperBodyMatrix * humanController.upperRightArmOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperRightArmJointQuat);
 
 
@@ -111,7 +113,7 @@ public class InverseKinematicController : MonoBehaviour
         Debug.Log("shoulder target distance: " + shoulderTargetDistance);
 
         // if the distance is above the threshold distance quit the function
-        if (shoulderTargetDistance > maxDistance)
+        if (shoulderTargetDistance > armLength)
         {
             Debug.Log("Distance: " + shoulderTargetDistance + " is too far from right shoulder!");
             IKConfig.upperRightArmJointQuat = Quaternion.identity;
@@ -121,8 +123,13 @@ public class InverseKinematicController : MonoBehaviour
             return true;
         }
 
+        upperBodyMatrix = lowerBodyMatrix * humanController.upperBodyOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperBodyQuat);
+        upperRightArmMatrix = upperBodyMatrix * humanController.upperRightArmOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperRightArmJointQuat);
+        float defaultPoseToTargetDistance = (targetPos - HumanController.getTranslation(upperRightArmMatrix)).magnitude;
+
+
         float torsoBendAngle = 0f;
-        if (shoulderTargetDistance > armLength && shoulderTargetDistance < maxDistance)
+        if (defaultPoseToTargetDistance > armLength)
         {
             Debug.Log("Calculating torsobend");
 
@@ -146,6 +153,8 @@ public class InverseKinematicController : MonoBehaviour
             float betaAngle = Mathf.Acos(Vector3.Dot(Vector3.up, normalizedHipTargetDistVec)) * Mathf.Rad2Deg;
 
             torsoBendAngle = betaAngle - alphaAngle;
+            torsoBendAngle = torsoBendAngle > maxTorsoBendAngle ? maxTorsoBendAngle : torsoBendAngle;
+
             Debug.Log("torsoangle: " + torsoBendAngle);
             IKConfig.upperBodyQuat = Quaternion.Euler(0f, 0f, -torsoBendAngle);
             upperBodyMatrix = lowerBodyMatrix * humanController.upperBodyOffsetMatrix * Matrix4x4.Rotate(IKConfig.upperBodyQuat);
